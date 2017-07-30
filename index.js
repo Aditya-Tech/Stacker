@@ -11,6 +11,8 @@ var levelsToBlocks = {
   10: 1
 };
 
+var stacks = {};
+
 $( document ).ready(function() {
   var img = document.createElement('img');
   img.src='block.png';
@@ -33,56 +35,91 @@ $( document ).ready(function() {
 
 
   setInterval(function() {
-    if (r && !pause) {
+    if (r) {
       move(levelsToBlocks[level], y, 'left');
-    } else if (l && !pause) {
+    } else if (l) {
       move(levelsToBlocks[level], y, 'right');
     }
 
     if (x <= 0) {
       l = true;
       r = false;
-    } else if (x >= canvas.width - (70 * 4)) {
+    } else if (x >= canvas.width - (70 * levelsToBlocks[level])) {
       r = true;
       l = false;
     }
   }, time)
 
-  document.body.onkeyup = function(e){
+  document.body.onkeyup = function(e) {
     if (e.keyCode == 32) {
+        stacks[level] = [];
+        for (var i = 0; i < levelsToBlocks[level]; i++) {
+          var temp = stacks[level];
+          temp.push(x + (i * 70));
+          stacks[level] = temp;
+        }
+        console.log(level)
+        if (level > 1) {
+          var prevLevel = stacks[level - 1];
+          var curLevel = stacks[level];
+          if (((curLevel[0] < prevLevel[0]) && (curLevel[curLevel.length - 1] <= prevLevel[prevLevel.length - 1])) || ((curLevel[0] >= prevLevel[0]) && (curLevel[curLevel.length - 1] > prevLevel[prevLevel.length - 1]))) {
+            console.log("curLevel[0]: " + curLevel[0])
+            console.log("prevLevel[0]: " + prevLevel[0])
 
+            if (curLevel[0] < prevLevel[0]) {
+              var toRemove = [];
+              for (var i = 0; i < curLevel.length; i++) {
+                console.log("curLevel[i]: " + curLevel[i])
+                console.log("prevLevel[0]: " + prevLevel[0])
+                if (curLevel[i] < prevLevel[0]) {
+                  console.log("remove")
+                  context.clearRect(curLevel[i], y, 70, 70);
+                  toRemove.push(curLevel[i])
+                }
+              }
+
+              for (var i = 0; i < toRemove.length; i++) {
+                var index = curLevel.indexOf(toRemove[i])
+                curLevel.splice(index, 1)
+              }
+              stacks[level] = curLevel;
+              console.log("new prevLevel: " + stacks[level]);
+            } else if (curLevel[curLevel.length - 1] > prevLevel[prevLevel.length - 1]) {
+              for (var i = 0; i < curLevel.length; i++) {
+                if (curLevel[i] < prevLevel[0]) {
+                  context.clearRect(curLevel[i], y, 70, 70);
+                }
+              }
+            }
+          }
+        }
+
+        time = 10;
         var b = levelsToBlocks[level];
         pause = true;
         level++;
         y -= 70;
-        for (var i = 0; i < b; i++) {
-          context.drawImage(img, 70 * i, y, 70, 70);
-          console.log("Drawn")
-        }
         var r = false;
         var l = true;
-
-      pause = false;
+        pause = false;
     }
   }
-
 
   function move(b, h, dir) {
-    for (var i = 0; i < b; i++) {
-      context.clearRect(x + (70 * i), h, 70, 70);
-    }
+    if (!pause) {
+      for (var i = 0; i < b; i++) {
+        context.clearRect(x + (70 * i), h, 70, 70);
+      }
 
-    if (dir == 'left') {
-      x -= 70;
-    } else {
-      x += 70;
-    }
+      if (dir == 'left') {
+        x -= 70;
+      } else {
+        x += 70;
+      }
 
-    for (var i = 0; i < b; i++) {
-      context.drawImage(img, x + (70 * i), y, 70, 70);
+      for (var i = 0; i < b; i++) {
+        context.drawImage(img, x + (70 * i), y, 70, 70);
+      }
     }
   }
-
-
-
 });
