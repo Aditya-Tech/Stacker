@@ -1,3 +1,15 @@
+var levelsToBlocks = {
+  1: 4,
+  2: 4,
+  3: 4,
+  4: 3,
+  5: 3,
+  6: 3,
+  7: 2,
+  8: 1,
+  9: 1,
+  10: 1
+};
 
 $( document ).ready(function() {
   var img = document.createElement('img');
@@ -6,61 +18,71 @@ $( document ).ready(function() {
   var canvas = document.getElementById("canvas");
   var context = canvas.getContext("2d");
   var x = 0;
-  var y = canvas.height - 35;
-  context.drawImage(img, x, y, 35, 35);
-  context.drawImage(img, x + 35, y, 35, 35);
-  context.drawImage(img, x + 70, y, 35, 35);
-  context.drawImage(img, x + 105, y, 35, 35);
+  var y = canvas.height - 70;
+  context.drawImage(img, x, y, 70, 70);
+  context.drawImage(img, x + 70, y, 70, 70);
+  context.drawImage(img, x + 140, y, 70, 70);
+  context.drawImage(img, x + 210, y, 70, 70);
 
-
-  context.fillRect(x, y, 35, 35);
-  var time = 100;
+  var level = 1;
+  var time = 150;
 
   var r = false;
   var l = true;
+  var pause = false;
+
 
   setInterval(function() {
-    if (r) {
-      moveLeft();
-    } else if (l) {
-      moveRight();
+    if (r && !pause) {
+      move(levelsToBlocks[level], y, 'left');
+    } else if (l && !pause) {
+      move(levelsToBlocks[level], y, 'right');
     }
 
     if (x <= 0) {
-      console.log("move right")
       l = true;
       r = false;
-    } else if (x >= canvas.width - (35 * 4)) {
-      console.log("move left")
+    } else if (x >= canvas.width - (70 * 4)) {
       r = true;
       l = false;
     }
   }, time)
 
-  function moveRight() {
-    context.clearRect(x, y, 35, 35);
-    context.clearRect(x + 35, y, 35, 35);
-    context.clearRect(x + 70, y, 35, 35);
-    context.clearRect(x + 105, y, 35, 35);
+  document.body.onkeyup = function(e){
+    if (e.keyCode == 32) {
 
-    x += 35;
-    context.drawImage(img, x, y, 35, 35);
-    context.drawImage(img, x + 35, y, 35, 35);
-    context.drawImage(img, x + 70, y, 35, 35);
-    context.drawImage(img, x + 105, y, 35, 35);
+        var b = levelsToBlocks[level];
+        pause = true;
+        level++;
+        y -= 70;
+        for (var i = 0; i < b; i++) {
+          context.drawImage(img, 70 * i, y, 70, 70);
+          console.log("Drawn")
+        }
+        var r = false;
+        var l = true;
+
+      pause = false;
+    }
   }
 
-  function moveLeft() {
-    context.clearRect(x, y, 35, 35);
-    context.clearRect(x + 35, y, 35, 35);
-    context.clearRect(x + 70, y, 35, 35);
-    context.clearRect(x + 105, y, 35, 35);
-    x -= 35;
-    context.drawImage(img, x, y, 35, 35);
-    context.drawImage(img, x + 35, y, 35, 35);
-    context.drawImage(img, x + 70, y, 35, 35);
-    context.drawImage(img, x + 105, y, 35, 35);
+
+  function move(b, h, dir) {
+    for (var i = 0; i < b; i++) {
+      context.clearRect(x + (70 * i), h, 70, 70);
+    }
+
+    if (dir == 'left') {
+      x -= 70;
+    } else {
+      x += 70;
+    }
+
+    for (var i = 0; i < b; i++) {
+      context.drawImage(img, x + (70 * i), y, 70, 70);
+    }
   }
+
 
 
 });
