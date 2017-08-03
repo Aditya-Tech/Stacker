@@ -7,8 +7,7 @@ var levelsToBlocks = {
   6: 3,
   7: 2,
   8: 1,
-  9: 1,
-  10: 1
+  9: 1
 };
 
 var img = document.createElement('img');
@@ -31,33 +30,88 @@ var curTime;
 var diff;
 var stacks = {};
 
-$( document ).ready(function() {
-  var canvas = document.getElementById("canvas");
-  var context = canvas.getContext("2d");
+var canvas;
+var context;
+
+var game;
+
+var gameStarted = false;
+
+function gameplay() {
+  if (r) {
+    move(levelsToBlocks[level], y, 'left');
+  } else if (l) {
+    move(levelsToBlocks[level], y, 'right');
+  }
+
+  if (x <= 0) {
+    l = true;
+    r = false;
+  } else if (x >= canvas.width - (70 * levelsToBlocks[level])) {
+    r = true;
+    l = false;
+  }
+}
+
+var setGame = function() {
+  gameStarted = true;
+  context.clearRect(0, 0, canvas.width, canvas.height);
+
+  clearInterval(game)
+
+  x = 0;
+  y = canvas.height - 70;
+  context.drawImage(img, x, y, 70, 70);
+  context.drawImage(img, x + 70, y, 70, 70);
+  context.drawImage(img, x + 140, y, 70, 70);
+  context.drawImage(img, x + 210, y, 70, 70);
+
+  level = 1;
+  time = 150;
+
+  r = false;
+  l = true;
+  pause = false;
+  stop = false;
+  winPossible = true;
+  won = false;
+  curTime = +new Date();
+  game = setInterval(gameplay, time)
+}
+
+function move(b, h, dir) {
+  if (!pause) {
+    for (var i = 0; i < b; i++) {
+      context.clearRect(x + (70 * i), h, 70, 70);
+    }
+
+    if (dir == 'left') {
+      x -= 70;
+    } else {
+      x += 70;
+    }
+
+    for (var i = 0; i < b; i++) {
+      context.drawImage(img, x + (70 * i), y, 70, 70);
+    }
+  }
+}
+
+  $( document ).ready(function() {
+    $(".btn").mouseup(function(){
+      $(this).blur();
+  })
+  canvas = document.getElementById("canvas");
+  context = canvas.getContext("2d");
 
   setGame();
 
-  var game = setInterval(gameplay, time)
 
-  function gameplay() {
-    if (r) {
-      move(levelsToBlocks[level], y, 'left');
-    } else if (l) {
-      move(levelsToBlocks[level], y, 'right');
-    }
 
-    if (x <= 0) {
-      l = true;
-      r = false;
-    } else if (x >= canvas.width - (70 * levelsToBlocks[level])) {
-      r = true;
-      l = false;
-    }
-  }
 
   document.body.onkeyup = function(e) {
     diff = +new Date() - curTime;
-    if (e.keyCode == 32 && winPossible && diff >= 150) {
+    if (e.keyCode == 32 && winPossible && diff >= 150 && gameStarted) {
         var wait = setTimeout(function() { }, 250);
         var time =
         stacks[level] = [0, 0, 0, 0, 0, 0, 0, 0];
@@ -93,8 +147,8 @@ $( document ).ready(function() {
                   var below = j - 1;
                   if (stacks[below][i] === 0) {
                     stacks[j][i] = 0;
-                    context.clearRect(i * 70, (10 - j) * 70, 70, 70);
-                    context.drawImage(img, i * 70, (11 - j) * 70, 70, 70);
+                    context.clearRect(i * 70, (9 - j) * 70, 70, 70);
+                    context.drawImage(img, i * 70, (10 - j) * 70, 70, 70);
                     stop = below;
                   }
                   j--;
@@ -114,14 +168,14 @@ $( document ).ready(function() {
           var b = levelsToBlocks[level];
           pause = true;
           level++;
-          if (level > 10) {
+          if (level > 9) {
             clearInterval(game);
             alert("You've Won!");
             context.clearRect(0, 0, canvas.width, canvas.height);
             gameEndScreen();
           }
           clearInterval(game);
-          time = 150 - (level * 10)
+          time = 150 - (level * 10);
           game = setInterval(gameplay, time)
           console.log(time)
           y -= 70;
@@ -155,26 +209,11 @@ $( document ).ready(function() {
     curTime = +new Date();
   }
 
-  function move(b, h, dir) {
-    if (!pause) {
-      for (var i = 0; i < b; i++) {
-        context.clearRect(x + (70 * i), h, 70, 70);
-      }
 
-      if (dir == 'left') {
-        x -= 70;
-      } else {
-        x += 70;
-      }
-
-      for (var i = 0; i < b; i++) {
-        context.drawImage(img, x + (70 * i), y, 70, 70);
-      }
-    }
-  }
 
   function gameEndScreen() {
     context.clearRect(0, 0, canvas.width, canvas.height);
+    document.getElementById("resetButton").disabled = true;
 
     var i = 0;
     var j = 0;
@@ -185,7 +224,7 @@ $( document ).ready(function() {
         context.drawImage(img, i * 70, j * 70, 70, 70);
         j++;
       }
-      if (j == 10 && !clear) {
+      if (j == 9 && !clear) {
         i++;
         j = 0;
       }
@@ -202,7 +241,7 @@ $( document ).ready(function() {
           context.clearRect(i * 70, j * 70, 70, 70);
           j++;
         }
-        if (j == 10 ) {
+        if (j == 9 ) {
           i++;
           j = 0;
         }
@@ -218,7 +257,15 @@ $( document ).ready(function() {
   }
 
   function playAgainScreen() {
+    document.getElementById("resetButton").disabled = false;
+
     context.clearRect(0, 0, canvas.width, canvas.height);
+
+    context = canvas.getContext("2d");
+    context.font = "30px Comic Sans MS";
+    context.fillStyle = "blue";
+    context.textAlign = "center";
+    context.fillText("Click New Game below to play again!", canvas.width/2, canvas.height/2);
   }
 
 });
