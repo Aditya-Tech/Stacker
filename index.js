@@ -24,13 +24,14 @@ var r;
 var l;
 var pause;
 var stop;
-var winPossible;
+var winPossible = true;
 var won;
 
+var curTime;
+var diff;
 var stacks = {};
 
 $( document ).ready(function() {
-
   var canvas = document.getElementById("canvas");
   var context = canvas.getContext("2d");
 
@@ -55,8 +56,10 @@ $( document ).ready(function() {
   }
 
   document.body.onkeyup = function(e) {
-    if (e.keyCode == 32 && winPossible && !won) {
-
+    diff = +new Date() - curTime;
+    if (e.keyCode == 32 && winPossible && diff >= 150) {
+        var wait = setTimeout(function() { }, 250);
+        var time =
         stacks[level] = [0, 0, 0, 0, 0, 0, 0, 0];
         var temp = stacks[level];
         for (var i = 0; i < levelsToBlocks[level]; i++) {
@@ -64,10 +67,10 @@ $( document ).ready(function() {
           temp[ix] = 1;
         }
         stacks[level] = temp;
-        console.log(stacks)
+        console.log(stacks);
         if (level > 1) {
-          prevLevel = stacks[level - 1];
-          curLevel = stacks[level];
+          var prevLevel = stacks[level - 1];
+          var curLevel = stacks[level];
 
           var pos = function() {
             for (var i = 0; i < curLevel.length; i++) {
@@ -78,32 +81,39 @@ $( document ).ready(function() {
             return false;
           }
           winPossible = pos() ? true : false;
-          console.log(winPossible)
+          console.log(level + ": " + winPossible)
 
-          for (var i = 0; i < curLevel.length; i++) {
-            var j = level;
-            if (curLevel[i] === 1) {
-              var stop = j - 1;
-              while (j > 1) {
-                var below = j - 1;
-                if (stacks[below][i] === 0) {
-                  stacks[j][i] = 0;
-                  context.clearRect(i * 70, (10 - j) * 70, 70, 70);
-                  context.drawImage(img, i * 70, (11 - j) * 70, 70, 70);
-                  stop = below;
+          if (winPossible) {
+            for (var i = 0; i < curLevel.length; i++) {
+              var j = level;
+              if (curLevel[i] === 1) {
+                var stop = j - 1;
+                while (j > 1) {
+                  console.log(stacks[j - 1][i])
+                  var below = j - 1;
+                  if (stacks[below][i] === 0) {
+                    stacks[j][i] = 0;
+                    context.clearRect(i * 70, (10 - j) * 70, 70, 70);
+                    context.drawImage(img, i * 70, (11 - j) * 70, 70, 70);
+                    stop = below;
+                  }
+                  j--;
                 }
-                j--;
+                stacks[stop][i] = 1;
               }
-              stacks[stop][i] = 1;
             }
+          } else {
+            alert("You lose!")
+            clearInterval(game)
+            gameEndScreen();
           }
+
         }
 
         if (winPossible) {
           var b = levelsToBlocks[level];
           pause = true;
           level++;
-          console.log(level)
           if (level > 10) {
             clearInterval(game);
             alert("You've Won!");
@@ -111,18 +121,14 @@ $( document ).ready(function() {
             gameEndScreen();
           }
           clearInterval(game);
-          time -= 1;
+          time = 150 - (level * 10)
           game = setInterval(gameplay, time)
-
+          console.log(time)
           y -= 70;
           var r = false;
           var l = true;
           pause = false;
-        } else {
-          clearInterval(game);
-          alert("You've Lost!");
-          context.clearRect(0, 0, canvas.width, canvas.height);
-          gameEndScreen();
+          curTime = +new Date();
 
         }
 
@@ -146,6 +152,7 @@ $( document ).ready(function() {
     stop = false;
     winPossible = true;
     won = false;
+    curTime = +new Date();
   }
 
   function move(b, h, dir) {
@@ -167,6 +174,8 @@ $( document ).ready(function() {
   }
 
   function gameEndScreen() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
     var i = 0;
     var j = 0;
     var clear = false;
@@ -210,6 +219,6 @@ $( document ).ready(function() {
 
   function playAgainScreen() {
     context.clearRect(0, 0, canvas.width, canvas.height);
-
   }
+
 });
