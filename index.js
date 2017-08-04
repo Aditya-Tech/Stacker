@@ -37,6 +37,8 @@ var game;
 
 var gameStarted = false;
 
+var animateEnd;
+
 function gameplay() {
   if (r) {
     move(levelsToBlocks[level], y, 'left');
@@ -55,8 +57,9 @@ function gameplay() {
 
 var setGame = function() {
   gameStarted = true;
-  context.clearRect(0, 0, canvas.width, canvas.height);
+  clearInterval(animateEnd);
 
+  context.clearRect(0, 0, canvas.width, canvas.height);
   clearInterval(game)
 
   x = 0;
@@ -107,85 +110,17 @@ function move(b, h, dir) {
   setGame();
 
 
-
+  canvas.addEventListener("touchstart", function() {
+    diff = +new Date() - curTime;
+    if (winPossible && diff >= 150 && gameStarted) {
+      nextMove();
+    }
+  }, false);
 
   document.body.onkeyup = function(e) {
     diff = +new Date() - curTime;
     if (e.keyCode == 32 && winPossible && diff >= 150 && gameStarted) {
-        var wait = setTimeout(function() { }, 250);
-        var time =
-        stacks[level] = [0, 0, 0, 0, 0, 0, 0, 0];
-        var temp = stacks[level];
-        for (var i = 0; i < levelsToBlocks[level]; i++) {
-          var ix = (x + (i * 70)) / 70;
-          temp[ix] = 1;
-        }
-        stacks[level] = temp;
-        console.log(stacks);
-        if (level > 1) {
-          var prevLevel = stacks[level - 1];
-          var curLevel = stacks[level];
-
-          var pos = function() {
-            for (var i = 0; i < curLevel.length; i++) {
-              if (curLevel[i] === 1 && prevLevel[i] === 1) {
-                return true;
-              }
-            }
-            return false;
-          }
-          winPossible = pos() ? true : false;
-          console.log(level + ": " + winPossible)
-
-          if (winPossible) {
-            for (var i = 0; i < curLevel.length; i++) {
-              var j = level;
-              if (curLevel[i] === 1) {
-                var stop = j - 1;
-                while (j > 1) {
-                  console.log(stacks[j - 1][i])
-                  var below = j - 1;
-                  if (stacks[below][i] === 0) {
-                    stacks[j][i] = 0;
-                    context.clearRect(i * 70, (9 - j) * 70, 70, 70);
-                    context.drawImage(img, i * 70, (10 - j) * 70, 70, 70);
-                    stop = below;
-                  }
-                  j--;
-                }
-                stacks[stop][i] = 1;
-              }
-            }
-          } else {
-            alert("You lose!")
-            clearInterval(game)
-            gameEndScreen();
-          }
-
-        }
-
-        if (winPossible) {
-          var b = levelsToBlocks[level];
-          pause = true;
-          level++;
-          if (level > 9) {
-            clearInterval(game);
-            alert("You've Won!");
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            gameEndScreen();
-          }
-          clearInterval(game);
-          time = 150 - (level * 10);
-          game = setInterval(gameplay, time)
-          console.log(time)
-          y -= 70;
-          var r = false;
-          var l = true;
-          pause = false;
-          curTime = +new Date();
-
-        }
-
+        nextMove();
     }
   }
 
@@ -209,17 +144,90 @@ function move(b, h, dir) {
     curTime = +new Date();
   }
 
+  function nextMove() {
+    var wait = setTimeout(function() { }, 250);
+    var time =
+    stacks[level] = [0, 0, 0, 0, 0, 0, 0, 0];
+    var temp = stacks[level];
+    for (var i = 0; i < levelsToBlocks[level]; i++) {
+      var ix = (x + (i * 70)) / 70;
+      temp[ix] = 1;
+    }
+    stacks[level] = temp;
+    console.log(stacks);
+    if (level > 1) {
+      var prevLevel = stacks[level - 1];
+      var curLevel = stacks[level];
 
+      var pos = function() {
+        for (var i = 0; i < curLevel.length; i++) {
+          if (curLevel[i] === 1 && prevLevel[i] === 1) {
+            return true;
+          }
+        }
+        return false;
+      }
+      winPossible = pos() ? true : false;
+      console.log(level + ": " + winPossible)
+
+      if (winPossible) {
+        for (var i = 0; i < curLevel.length; i++) {
+          var j = level;
+          if (curLevel[i] === 1) {
+            var stop = j - 1;
+            while (j > 1) {
+              console.log(stacks[j - 1][i])
+              var below = j - 1;
+              if (stacks[below][i] === 0) {
+                stacks[j][i] = 0;
+                context.clearRect(i * 70, (9 - j) * 70, 70, 70);
+                context.drawImage(img, i * 70, (10 - j) * 70, 70, 70);
+                stop = below;
+              }
+              j--;
+            }
+            stacks[stop][i] = 1;
+          }
+        }
+      } else {
+        alert("You lose!")
+        clearInterval(game)
+        gameEndScreen();
+      }
+
+    }
+
+    if (winPossible) {
+      var b = levelsToBlocks[level];
+      pause = true;
+      level++;
+      if (level > 9) {
+        clearInterval(game);
+        alert("You've Won!");
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        gameEndScreen();
+      }
+      clearInterval(game);
+      time = 150 - (level * 10);
+      game = setInterval(gameplay, time)
+      console.log(time)
+      y -= 70;
+      var r = false;
+      var l = true;
+      pause = false;
+      curTime = +new Date();
+
+    }
+  }
 
   function gameEndScreen() {
     context.clearRect(0, 0, canvas.width, canvas.height);
-    document.getElementById("resetButton").disabled = true;
 
     var i = 0;
     var j = 0;
     var clear = false;
 
-    var animateEnd = setInterval(function() {
+    animateEnd = setInterval(function() {
       if (i <= 7 && !clear) {
         context.drawImage(img, i * 70, j * 70, 70, 70);
         j++;
