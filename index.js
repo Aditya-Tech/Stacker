@@ -117,7 +117,7 @@ function move(b, h, dir) {
     }
   }, false);
 
-  document.body.onkeyup = function(e) {
+  document.body.onkeydown = function(e) {
     diff = +new Date() - curTime;
     if (e.keyCode == 32 && winPossible && diff >= 150 && gameStarted) {
         nextMove();
